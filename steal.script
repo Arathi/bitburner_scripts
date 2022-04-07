@@ -1,0 +1,79 @@
+function steal(hostName, moneyThreshold, secruityThreshold) {
+    while (true) {
+        var moneyAvailable = getServerMoneyAvailable(hostName);
+        var secruityLevel = getServerSecurityLevel(hostName);
+        printf("%s当前可用金额：%f，安全等级：%f", hostName, moneyAvailable.toFixed(3), secruityLevel.toFixed(3));
+
+        if (moneyAvailable < moneyThreshold) {
+            var growth = grow(hostName);
+            print(hostName + '的可用金额增加' + growth);
+        }
+
+        if (secruityLevel > secruityThreshold) {
+            var decreased = weaken(hostName);
+            print(hostName + '的安全等级降低' + decreased);
+        }
+        
+        var stolenMoney = hack(hostName);
+        print('从' + hostName + '获取$' + stolenMoney);
+    }
+}
+
+function stealV2(hostName, moneyThresholdMin, moneyThresholdMax, secruityThresholdMin, secruityThresholdMax) {
+    var moneyTooLow = false;
+    var secruityTooHigh = false;
+    while (true) {
+        var moneyAvailable = getServerMoneyAvailable(hostName);
+        var secruityLevel = getServerSecurityLevel(hostName);
+        printf("%s当前可用金额：%f，安全等级：%f", hostName, moneyAvailable.toFixed(3), secruityLevel.toFixed(3));
+        
+        if (moneyTooLow == false && moneyAvailable < moneyThresholdMin) {
+            moneyTooLow = true;
+            printf("%s上的可用金额过低，开启可用金额获取", hostName);
+        }
+        else if (moneyTooLow == true && moneyAvailable > moneyThresholdMax) {
+            moneyTooLow = false;
+            printf("%s上的可用金额充足，关闭可用金额获取", hostName);
+        }
+
+        if (secruityTooHigh == false && secruityLevel > secruityThresholdMax) {
+            secruityTooHigh = true;
+            printf("%s上的安全等级过高，开启安全等级下降", hostName);
+        }
+        else if (secruityTooHigh == true && secruityLevel < secruityThresholdMin) {
+            secruityTooHigh = false;
+            printf("%s上的安全等级够低了，关闭安全等级下降", hostName);
+        }
+
+        if (moneyTooLow) {
+            var growth = grow(hostName);
+            print(hostName + '的可用金额增加' + growth);
+        }
+
+        if (secruityTooHigh) {
+            var decreased = weaken(hostName);
+            print(hostName + '的安全等级降低' + decreased);
+        }
+        
+        var stolenMoney = hack(hostName);
+        print('从' + hostName + '获取$' + stolenMoney);
+    }
+}
+
+if (args.length == 3) {
+    var hostName = args[0];
+    var moneyThreshold = args[1];
+    var secruityThreshold = args[2];
+    steal(hostName, moneyThreshold, secruityThreshold);
+}
+else if (args.length == 5) {
+    var hostName = args[0];
+    var moneyThresholdMin = args[1];
+    var moneyThresholdMax = args[2];
+    var secruityThresholdMin = args[3];
+    var secruityThresholdMax = args[4];
+    stealV2(hostName, moneyThresholdMin, moneyThresholdMax, secruityThresholdMin, secruityThresholdMax);
+}
+else {
+    print("参数错误");
+}

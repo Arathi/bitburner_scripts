@@ -1,0 +1,44 @@
+import { getHackedServers } from "getHackedServers.script";
+
+function launch(hostName, scriptName, targets) {
+    killall(hostName);
+    var ramLeft = getServerMaxRam(hostName) - getServerUsedRam(hostName);
+    printf("服务器%s剩余内存：%f", hostName, ramLeft);
+    var scriptRamCost = getScriptRam(scriptName);
+    var threadsMax = Math.floor(ramLeft / scriptRamCost);
+    var minThreadsPerHost = Math.floor(threadsMax / targets.length);
+    var additionThreads = threadsMax % targets.length;
+    for (var index = 0; index < targets.length; index++) {
+        var threads = minThreadsPerHost;
+        if (additionThreads > 0) {
+            threads++;
+            additionThreads--;
+        }
+        if (threads <= 0) {
+            break;
+        }
+        var target = targets[index];
+        var moneyThresholdMin = 100000;
+        var moneyThresholdMax = getServerMaxMoney(target.name) * 0.5;
+        var securityMin = getServerMinSecurityLevel(target.name);
+        var delta = getServerBaseSecurityLevel(target.name) - securityMin;
+        var secruityThresholdMin = securityMin + 0.25 * delta;
+        var secruityThresholdMax = securityMin + 0.5 * delta;
+        printf("在服务器%s执行脚本%s，目标%s，线程数%d", hostName, scriptName, target.name, threads);
+        exec(scriptName, hostName, threads, target.name, moneyThresholdMin, moneyThresholdMax, secruityThresholdMin, secruityThresholdMax);
+    }
+    printf("最大线程数：%d", threadsMax);
+}
+
+var hosts = getHackedServers();
+var scriptName = 'steal.script';
+if (args.length == 0) {
+    for (var index = 0; index < hosts.length; index++) {
+        var host = hosts[index];
+        launch(host.name, scriptName, hosts);
+    }
+}
+else if (args.length == 1) {
+    var hostName = args[0];
+    launch(hostName, scriptName, hosts);
+}

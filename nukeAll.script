@@ -1,0 +1,58 @@
+import { getScanDepth } from 'getScanDepth.script';
+import { scanMore } from 'scanMore.script';
+
+function su(host, hki) {
+	if (host.root) {
+		print(host.name + '已获得root权限');
+		return false;
+	}
+	if (host.level > hki.level) {
+		print(host.name + '等级过高（' + hki.level + '/' + host.level + "）");
+		return false;
+	}
+	if (host.port > hki.port) {
+		print(host.name + '需要端口数过多（' + hki.port + '/' + host.port + "）");
+		return false;
+	}
+
+	if (host.ssh) {
+		brutessh(host.name);
+	}
+	if (host.ftp) {
+		ftpcrack(host.name);
+	}
+	if (host.smtp) {
+		relaysmtp(host.name);
+	}
+	if (host.http) {
+		httpworm(host.name);
+	}
+	if (host.sql) {
+		sqlinject(host.name);
+	}
+
+	nuke(host.name);
+	print(host.name + '获取root权限成功');
+
+	return true;
+}
+
+var hosts = scanMore('home', {}, getScanDepth());
+var hki = {
+	level: getHackingLevel(),
+	ssh: fileExists('BruteSSH.exe', 'home'),
+	ftp: fileExists('FTPCrack.exe', 'home'),
+	smtp: fileExists('relaySMTP.exe', 'home'),
+	http: fileExists('HTTPWorm.exe', 'home'),
+	sql: fileExists('SQLInject.exe', 'home')
+};
+hki['port'] = (hki.ssh ? 1 : 0) +
+	(hki.ftp ? 1 : 0) +
+	(hki.smtp ? 1 : 0) +
+	(hki.http ? 1 : 0) +
+	(hki.sql ? 1 : 0);
+
+for (var hostName in hosts) {
+	var host = hosts[hostName];
+	su(host, hki);
+}

@@ -1,0 +1,89 @@
+import { getScanDepth } from 'getScanDepth.script';
+import { scanMore } from 'scanMore.script';
+
+function getHackedServers(source) {
+    var cacheFileName = 'hacked_servers.txt';
+    var hackedServers = null;
+    if (source == 'cached' && fileExists(cacheFileName)) {
+        var json = read(cacheFileName);
+        hackedServers = JSON.parse(json);
+    }
+
+    if (hackedServers == null) {
+        hackedServers = [];
+        var hosts = scanMore('home', {}, getScanDepth());
+        for (var hostName in hosts) {
+            var host = hosts[hostName];
+            if (host.root) {
+                hackedServers.push(host);
+            }
+        }
+        write(cacheFileName, JSON.stringify(hackedServers), 'w');
+    }
+    
+    return hackedServers;
+}
+
+function printJSON(list) {
+    print(JSON.stringify(list));
+}
+
+function printCSV(list, moreInfo) {
+    // header
+    var output = "name, parent, root, level, port, ram";
+    if (moreInfo) {
+        output += ", money_current, money_max, security_min, security_base, security_current";
+    }
+    output += "\n";
+
+    // body
+    for (var index = 0; index < list.length; index++) {
+        var host = list[index];
+        output += host.name + ", ";
+        output += host.parent + ", ";
+        output += host.root + ", ";
+        output += host.level + ", ";
+        output += host.port + ", ";
+        output += host.ram;
+        if (moreInfo) {
+            output += ", ";
+            output += getServerMoneyAvailable(host.name).toFixed(3) + ", ";
+            output += getServerMaxMoney(host.name) + ", ";
+            output += getServerMinSecurityLevel(host.name) + ", ";
+            output += getServerBaseSecurityLevel(host.name) + ", ";
+            output += getServerSecurityLevel(host.name).toFixed(3);
+        }
+        output += "\n";
+    }
+
+    print(output);
+}
+
+var outputType = 'json';
+var source = 'cached';
+if (args.length >= 1) {
+    outputType = args[0];
+}
+if (args.lenght >= 2) {
+    source = args[1];
+}
+
+var list = getHackedServers(source);
+switch (outputType) {
+    case 'json':
+        printJSON(list);
+        break;
+    case 'csv':
+        printCSV(list, false);
+        break;
+    case 'csv+':
+        printCSV(list, true);
+        break;
+    case 'none':
+        break;
+    case 'amount':
+    case 'count':
+    default:
+        print('已获取root权限服务器' + list.length + '台');
+        break;
+}

@@ -1,0 +1,7 @@
+function getScanDepth() {
+	if (fileExists("DeepscanV2.exe", "home")) return 10;
+	if (fileExists("DeepscanV1.exe", "home")) return 5;
+	return 3;
+}
+
+print("当前最深扫描层级：" + getScanDepth());

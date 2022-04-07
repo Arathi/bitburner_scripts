@@ -1,0 +1,43 @@
+import { getScanDepth } from 'getScanDepth.script';
+
+function scanMore(hostName, hosts, depth) {
+	var childrenNames = scan(hostName);
+	for (var index in childrenNames) {
+		var childName = childrenNames[index];
+		if (hosts.hasOwnProperty(childName)) continue;
+		if (childName == 'home') continue;
+		var host = {
+			name: childName,
+			parent: hostName,
+			root: hasRootAccess(childName),
+			level: getServerRequiredHackingLevel(childName),
+			port: getServerNumPortsRequired(childName),
+			ram: getServerMaxRam(childName)
+		};
+		hosts[childName] = host;
+		if (depth > 1) {
+			scanMore(childName, hosts, depth-1);
+		}
+	}
+	return hosts;
+}
+
+var hostName = getHostname();
+var depth = getScanDepth();
+if (args.length == 2) {
+	hostName = args[0];
+	depth = args[1];
+}
+print('开始扫描' + hostName + "，最深层级" + depth);
+var hosts = scanMore(hostName, {}, depth);
+var output = 'name, parent, root, level, port, ram\n';
+for (var hostName in hosts) {
+	var host = hosts[hostName];
+	output += hostName + ', ';
+	output += host.parent + ', ';
+	output += host.root + ', ';
+	output += host.level + ', ';
+	output += host.port + ', ';
+	output += host.ram + '\n';
+}
+print(output);

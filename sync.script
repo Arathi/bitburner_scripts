@@ -1,0 +1,23 @@
+import { getHackedServers } from 'getHackedServers.script';
+
+function sync(fileNames) {
+	if (fileNames.length == 0) {
+		print('文件列表为空');
+		return 0;
+	}
+	
+	var counter = 0;
+	var hosts = getHackedServers('cached');
+	for (var hidx = 0; hidx < hosts.length; hidx++) {
+		var host = hosts[hidx];
+		for (var fidx = 0; fidx < fileNames.length; fidx++) {
+			var fileName = fileNames[fidx];
+			var succ = scp(fileName, 'home', host.name);
+			if (succ) counter++
+		}
+	}
+	return counter;
+}
+
+var succCounter = sync(args);
+print("同步成功" + succCounter + "次");
